@@ -8,7 +8,7 @@ A command line tool to help book tickets on the Indian Railways.
 
 ## Usage
 
-    python chai.py [-h] {optimize, avail} ...
+    python chai.py [-h] [-v] {optimize, avail} ...
 
 Use `-h` to get help with any command.
 
