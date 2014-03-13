@@ -262,12 +262,12 @@ def __get_all_avail(train_no, day, month, class_, quota, stations=None, concurre
             __params['lccp_dstncode'] = names[j]
             __params['lccp_class1'] = class_
             __params['lccp_quota'] = quota
-            __params['lccp_day'] = day
-            __params['lccp_month'] = month
+            __params['lccp_day'] = c_day
+            __params['lccp_month'] = c_month
             __headers['Referer'] = 'http://www.indianrail.gov.in/seat_Avail.html'
             __headers['Content-Type'] = 'application/x-www-form-urlencoded1; charset=UTF-8;'
             rs.append(grequests.post(AVAIL_URI, data=copy.copy(__params), headers=copy.copy(__headers),
-                                     hooks=dict(response=__on_response(day=day, month=month, src=names[i], dst=names[j], avail=avail))))
+                                     hooks=dict(response=__on_response(day=c_day, month=c_month, src=names[i], dst=names[j], avail=avail))))
     responses = grequests.map(rs, size=concurrency)
     avails = [__scrape_avail(r.text) for r in responses]
     print
