@@ -78,13 +78,7 @@ __headers = {
 def __scrape_avail(html):
     soup = bs(html)
     avail_str = ''
-    try:
-        avail_str = soup.select('tr.heading_table_top')[1].find_next_siblings('tr')[0].find_all('td')[2].text.strip()
-    except IndexError:
-        print "IndexError while scraping availibility"
-        print "html: "
-        print html
-        sys.exit(1)
+    avail_str = soup.select('tr.heading_table_top')[1].find_next_siblings('tr')[0].find_all('td')[2].text.strip()
     return avail_str
 
 def __scrape_stations_list(html):
@@ -238,7 +232,11 @@ def __on_response(day, month, src, dst, avail):
                        prompt="Fetching availibility... ")
         if (src not in avail):
             avail[src] = {}
-        avail[src][dst] = __scrape_avail(response.text)
+        try:
+            avail[src][dst] = __scrape_avail(response.text)
+        except IndexError:
+            print "Error: Unable to scrape availibility for %s/%s from %s to %s" %(day, month, src, dst)
+            sys.exit(1)
     return on_response
     
 __on_response.counter = 0
