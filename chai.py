@@ -10,7 +10,7 @@ import grequests
 
 def main():
     p = argparse.ArgumentParser(description="A command line tool to help book tickets on the Indian Railways.")
-    p.add_argument("-v", "--verbose", help="turn on verbose mode", action='store_false', dest='verbose')
+    p.add_argument("-v", "--verbose", help="turn on verbose mode", action='store_false', dest='verbose', default=False)
     sp = p.add_subparsers(help="sub-command help")
     p_optimize = sp.add_parser('optimize', help="calculate the best possible route to take between two stations")
     p_optimize.add_argument("-t", "--train_no", help="train number", required=True, dest='train_no')
