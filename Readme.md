@@ -4,21 +4,21 @@ A command line tool to help book tickets on the Indian Railways.
 
 ## Dependencies
 
-```shell
-pip install bs4 grequests
+```bash
+$ pip install bs4 grequests
 ```
 
 ## Usage
 
-```shell
-python chai.py [-h] [-v] {optimize, avail} ...
+```bash
+$ python chai.py [-h] [-v] {optimize, avail} ...
 ```
 
 Use `-h` to get help with any command.
 
 ## Example
 
-```shell
+```bash
 $ python chai.py avail -t 12802 -s NDLS -d KGP -D 30 -m 4
 RAC3/RAC 3
 $ python chai.py optimize -t 12802 -s NDLS -d KGP -D 30 -m 4
