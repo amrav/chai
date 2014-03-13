@@ -348,7 +348,10 @@ def optimize(train_no, src, dst, day, month, class_, quota, verbose = False):
         if (indices[optimum[i+1]] > indices[optimum[i]]):
             print ":", avail[optimum[i]][optimum[i+1]]
         else:
-            print ":", "Get off at %s" %optimum[i+1]
+            if indices[optimum[i+1]] < indices[src]:
+                print ":", "Get on at %s" %optimum[i]
+            else:
+                print ":", "Get off at %s" %optimum[i+1]
 
 if __name__ == '__main__':
     main()    
