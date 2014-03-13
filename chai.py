@@ -322,18 +322,30 @@ def optimize(train_no, src, dst, day, month, class_, quota, verbose = False):
         if names[i] not in cost:
             cost[names[i]] = {}
         cost[names[i]][dst] = (float("inf"), 0, 0)
-    for v1 in names[0:-1]:
+    for i in range(0, src_no):
+        cost[src][names[i]] = (float("inf"), 0, 0)
+        if names[i] not in cost:
+            cost[names[i]] = {}
+            for j in range(src_no + 1, len(names)):
+                cost[names[i]][names[j]] = (float("inf"), 0, 0)
+    for v1 in [src] + names[0:src_no] + names[src_no + 1:]:
         if (verbose):            
-            print "src = ", v1        
+            print "v1 = ", v1
         for v2 in cost[v1]:
             if (v1 == v2):
                 continue
             if (verbose):
-                print "dst = ", v2
-                print "segment cost = ", __segment_cost(v1, v2, avail, names, indices), " cost[names[0]][src] = ", cost[names[0]][v1], " cost[names[0]][dst] = ", cost[names[0]][v2]
-            if __cost_lt(__cost_sum(__segment_cost(v1, v2, avail, names, indices), cost[names[0]][v1]), cost[names[0]][v2]):
-                cost[names[0]][v2] = __cost_sum(__segment_cost(v1, v2, avail, names, indices), cost[names[0]][v1])
+                print "v2 = ", v2
+                print "segment cost =", __segment_cost(v1, v2, avail, names, indices),
+                if v1 in cost[src]:
+                    print "cost[%s][%s] = %s" %(src, v1, cost[src][v1]),
+                if v2 in cost[src]:
+                    print "cost[%s][%s] = %s" %(src, v2, cost[src][v2]),
+            if __cost_lt(__cost_sum(__segment_cost(v1, v2, avail, names, indices), cost[src][v1]), cost[src][v2]):
+                cost[src][v2] = __cost_sum(__segment_cost(v1, v2, avail, names, indices), cost[src][v1])
                 previous[v2] = v1
+            if (verbose):
+                print "Final cost[%s][%s] =" %(src, v2), cost[src][v2]
     if (verbose):
         print "Cost from ", src, " to ", dst, " is ", cost[src][dst]
     optimum = [dst]
