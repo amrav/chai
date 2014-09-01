@@ -19,7 +19,7 @@ def main():
     p_optimize.add_argument("-D", "--day", help="day of travel (dd)", required=True, dest='day')
     p_optimize.add_argument("-m", "--month", help="month of travel (mm)", required=True, dest='month')
     p_optimize.add_argument("-c", "--class", help="class of travel",
-                            choices=['1A', '2A', '3A', 'SL'], default='3A', dest='class_')
+                            choices=['1A', '2A', '3A', 'SL', 'CC'], default='3A', dest='class_')
     p_optimize.add_argument("-q", "--quota", help="class code",
                             choices=['GN', 'CK'], default='GN', dest='quota')
     def __optimize(args):
@@ -32,7 +32,7 @@ def main():
     p_availibility.add_argument("-D", "--day", help="day of travel (dd)", required=True)
     p_availibility.add_argument("-m", "--month", help="month of travel (mm)", required=True)
     p_availibility.add_argument("-c", "--class", help="class of travel",
-                                choices=['1A', '2A', '3A', 'SL'], default='3A', dest='class_')
+                                choices=['1A', '2A', '3A', 'SL', 'CC'], default='3A', dest='class_')
     p_availibility.add_argument("-q", "--quota", help="class code",
                                 choices=['GN', 'CK'], default='GN')
     def __get_avail(args):
