@@ -23,10 +23,10 @@ def main():
     p_optimize.add_argument("-q", "--quota", help="class code",
                             choices=['GN', 'CK'], default='GN', dest='quota')
     def __optimize(args):
-        optimize(args.train_no, args.src, args.dst, args.day, args.month, args.class_, args.quota, args.verbose)        
+        optimize(args.train_no, args.src, args.dst, args.day, args.month, args.class_, args.quota, args.verbose)
     p_optimize.set_defaults(func=__optimize)
     p_availibility = sp.add_parser('avail', help="find availibility between two stations")
-    p_availibility.add_argument("-t", "--train_no", help="train number", required=True)    
+    p_availibility.add_argument("-t", "--train_no", help="train number", required=True)
     p_availibility.add_argument("-s", "--src", help="source station code", required=True)
     p_availibility.add_argument("-d", "--dst", help="destination station code", required=True)
     p_availibility.add_argument("-D", "--day", help="day of travel (dd)", required=True)
@@ -36,11 +36,11 @@ def main():
     p_availibility.add_argument("-q", "--quota", help="class code",
                                 choices=['GN', 'CK'], default='GN')
     def __get_avail(args):
-        print get_avail(args.train_no, args.src, args.dst, args.day, args.month, args.class_, args.quota)        
+        print get_avail(args.train_no, args.src, args.dst, args.day, args.month, args.class_, args.quota)
     p_availibility.set_defaults(func=__get_avail)
     args = p.parse_args()
     args.func(args)
-    
+
 AVAIL_URI = 'http://www.indianrail.gov.in/cgi_bin/inet_accavl_cgi.cgi'
 schd_uri = 'http://www.indianrail.gov.in/cgi_bin/inet_trnnum_cgi.cgi'
 
@@ -89,12 +89,12 @@ def __scrape_stations_list(html):
         stations.append(row.select('td')[1].text.strip())
         offsets.append(int(row.select('td')[8].text.strip()) - 1)
     return {'names': stations, 'offsets': offsets}
-                    
+
 
 def __correct_date(day, month, offset):
     days_in_month = 30
     if (month == 1 or
-        month == 3 or 
+        month == 3 or
         month == 5 or
         month == 7 or
         month == 8 or
@@ -111,14 +111,14 @@ def __correct_date(day, month, offset):
     if (day > days_in_month):
         day -= days_in_month
     return (day, month)
-            
+
 def get_avail(train_no, src, dst, day, month, class_, quota, offset = 0):
 
     day = int(day)
     month = int(month)
-    
+
     (day, month) = __correct_date(day, month, offset)
-    
+
     __params['lccp_trnno'] = train_no
     __params['lccp_srccode'] = src
     __params['lccp_dstncode'] = dst
@@ -154,11 +154,11 @@ def print_nC2_avail(train_no, day, month, class_, quota):
             last_avail = r"foobar" # should not match with 'Regret' or 'WL'
 
         not_avail_flag = False
-            
+
         while (re.match(last_avail, avail_str) != None or
                (last_avail == "foobar" and re.match("AVAILABLE", avail_str)) or
                (re.match("NOT AVAILABLE", avail_str) != None)):
-            
+
             if (re.match("NOT AVAILABLE", avail_str) != None):
                 not_avail_flag = True
             else:
@@ -169,7 +169,7 @@ def print_nC2_avail(train_no, day, month, class_, quota):
             if j == len(stations['names']):
                 break
             avail_str = get_avail(train_no, stations['names'][i], stations['names'][j], day, month, class_, quota, stations['offsets'][i])
-                
+
         if i == j - 1:
             j += 1
         if (not_avail_flag):
@@ -186,7 +186,7 @@ def get_optimum_segments(train_no, src, dst, day, month, class_, quota, avail = 
         avail = {}
     if (src not in avail):
         avail[src] = {}
-    if (stations == None):            
+    if (stations == None):
         stations = get_stations(train_no)
     src_no = 0; dst_no = 0
     while (stations['names'][src_no] != src):
@@ -209,9 +209,9 @@ def get_optimum_segments(train_no, src, dst, day, month, class_, quota, avail = 
                              day, month, class_, quota, avail, stations)
             )
         final_segmentation = possible_segmentations[0]
-        min = len(possible_segmentations[0])            
+        min = len(possible_segmentations[0])
         print "Possibilities: "
-        print possible_segmentations    
+        print possible_segmentations
 
         for candidate in possible_segmentations:
             if (len(candidate)) < min:
@@ -238,9 +238,9 @@ def __on_response(day, month, src, dst, avail):
             print "Error: Unable to scrape availibility for %s/%s from %s to %s" %(day, month, src, dst)
             sys.exit(1)
     return on_response
-    
+
 __on_response.counter = 0
-__on_response.tot = 1    
+__on_response.tot = 1
 
 def __get_all_avail(train_no, day, month, class_, quota, stations=None, concurrency=100):
     if (stations == None):
@@ -252,7 +252,7 @@ def __get_all_avail(train_no, day, month, class_, quota, stations=None, concurre
     rs = []
     __on_response.counter = 0
     __on_response.tot = (len(names) * (len(names) - 1)) / 2
-    avail = {}    
+    avail = {}
     print "Using up to", concurrency, "concurrent connections."
     for i in range(len(names) - 1):
         for j in range(i + 1, len(names)):
@@ -266,15 +266,23 @@ def __get_all_avail(train_no, day, month, class_, quota, stations=None, concurre
             __params['lccp_month'] = c_month
             __headers['Referer'] = 'http://www.indianrail.gov.in/seat_Avail.html'
             __headers['Content-Type'] = 'application/x-www-form-urlencoded1; charset=UTF-8;'
-            rs.append(grequests.post(AVAIL_URI, data=copy.copy(__params), headers=copy.copy(__headers),
-                                     hooks=dict(response=__on_response(day=c_day, month=c_month, src=names[i], dst=names[j], avail=avail))))
+            rs.append(
+                grequests.post(
+                    AVAIL_URI,
+                    data=copy.copy(__params),
+                    headers=copy.copy(__headers),
+                    hooks=dict(response=__on_response(day=c_day,
+                                                      month=c_month,
+                                                      src=names[i],
+                                                      dst=names[j],
+                                                      avail=avail))))
     responses = grequests.map(rs, size=concurrency)
     avails = [__scrape_avail(r.text) for r in responses]
     print
     return avail
 
 def __segment_cost(v1, v2, avail, names, indices):
-    #if v1 is ahead of v2     
+    #if v1 is ahead of v2
     if (indices[v1] >= indices[v2]):
         return (0, 0, 10 * (indices[v1] - indices[v2]))
     elif re.match("AVAILABLE", avail[v1][v2]):
@@ -329,7 +337,7 @@ def optimize(train_no, src, dst, day, month, class_, quota, verbose = False):
             for j in range(src_no + 1, len(names)):
                 cost[names[i]][names[j]] = (float("inf"), 0, 0)
     for v1 in [src] + names[0:src_no] + names[src_no + 1:]:
-        if (verbose):            
+        if (verbose):
             print "v1 = ", v1
         for v2 in cost[v1]:
             if (v1 == v2):
@@ -366,4 +374,4 @@ def optimize(train_no, src, dst, day, month, class_, quota, verbose = False):
                 print ":", "Get off at %s" %optimum[i+1]
 
 if __name__ == '__main__':
-    main()    
+    main()
