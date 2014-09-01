@@ -235,8 +235,8 @@ def __on_response(day, month, src, dst, avail):
         try:
             avail[src][dst] = __scrape_avail(response.text)
         except IndexError:
-            print "Error: Unable to scrape availibility for %s/%s from %s to %s" %(day, month, src, dst)
-            sys.exit(1)
+            print "\nWarning: Couldn't detect availibility for %s/%s from %s to %s" %(day, month, src, dst)
+            avail[src][dst] = "UNAVAILABLE"
     return on_response
 
 __on_response.counter = 0
@@ -315,8 +315,8 @@ def optimize(train_no, src, dst, day, month, class_, quota, verbose = False):
     offsets = stations['offsets']
     indices = {}
     for i in range(len(names)):
-    print "Stations found: ", indices
         indices[names[i]] = i
+    print "Stations found: ", indices
     src_no = indices[src]; dst_no = indices[dst]
     avail = __get_all_avail(train_no, day, month, class_, quota, stations)
     cost = {}
