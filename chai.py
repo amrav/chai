@@ -25,19 +25,19 @@ def main():
     def __optimize(args):
         optimize(args.train_no, args.src, args.dst, args.day, args.month, args.class_, args.quota, args.verbose)
     p_optimize.set_defaults(func=__optimize)
-    p_availibility = sp.add_parser('avail', help="find availibility between two stations")
-    p_availibility.add_argument("-t", "--train_no", help="train number", required=True)
-    p_availibility.add_argument("-s", "--src", help="source station code", required=True)
-    p_availibility.add_argument("-d", "--dst", help="destination station code", required=True)
-    p_availibility.add_argument("-D", "--day", help="day of travel (dd)", required=True)
-    p_availibility.add_argument("-m", "--month", help="month of travel (mm)", required=True)
-    p_availibility.add_argument("-c", "--class", help="class of travel",
+    p_availability = sp.add_parser('avail', help="find availability between two stations")
+    p_availability.add_argument("-t", "--train_no", help="train number", required=True)
+    p_availability.add_argument("-s", "--src", help="source station code", required=True)
+    p_availability.add_argument("-d", "--dst", help="destination station code", required=True)
+    p_availability.add_argument("-D", "--day", help="day of travel (dd)", required=True)
+    p_availability.add_argument("-m", "--month", help="month of travel (mm)", required=True)
+    p_availability.add_argument("-c", "--class", help="class of travel",
                                 choices=['1A', '2A', '3A', 'SL', 'CC'], default='3A', dest='class_')
-    p_availibility.add_argument("-q", "--quota", help="class code",
+    p_availability.add_argument("-q", "--quota", help="class code",
                                 choices=['GN', 'CK'], default='GN')
     def __get_avail(args):
         print get_avail(args.train_no, args.src, args.dst, args.day, args.month, args.class_, args.quota)
-    p_availibility.set_defaults(func=__get_avail)
+    p_availability.set_defaults(func=__get_avail)
     args = p.parse_args()
     args.func(args)
 
@@ -229,13 +229,13 @@ def __on_response(day, month, src, dst, avail):
     def on_response(response, *args, **kwargs):
         __on_response.counter += 1
         print_progress(__on_response.counter * 100 / __on_response.tot,
-                       prompt="Fetching availibility... ")
+                       prompt="Fetching availability... ")
         if (src not in avail):
             avail[src] = {}
         try:
             avail[src][dst] = __scrape_avail(response.text)
         except IndexError:
-            print "\nWarning: Couldn't detect availibility for %s/%s from %s to %s" %(day, month, src, dst)
+            print "\nWarning: Couldn't detect availability for %s/%s from %s to %s" %(day, month, src, dst)
             avail[src][dst] = "UNAVAILABLE"
     return on_response
 
@@ -277,7 +277,6 @@ def __get_all_avail(train_no, day, month, class_, quota, stations=None, concurre
                                                       dst=names[j],
                                                       avail=avail))))
     responses = grequests.map(rs, size=concurrency)
-    avails = [__scrape_avail(r.text) for r in responses]
     print
     return avail
 
