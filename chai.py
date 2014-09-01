@@ -315,6 +315,7 @@ def optimize(train_no, src, dst, day, month, class_, quota, verbose = False):
     offsets = stations['offsets']
     indices = {}
     for i in range(len(names)):
+    print "Stations found: ", indices
         indices[names[i]] = i
     src_no = indices[src]; dst_no = indices[dst]
     avail = __get_all_avail(train_no, day, month, class_, quota, stations)
