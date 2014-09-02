@@ -2,7 +2,7 @@
 
 import argparse
 import re
-from irctc import IrctcClient as irctc
+import irctc
 import sys
 import networkx as nx
 
@@ -101,6 +101,11 @@ def optimize(train_no, src, dst, day, month, class_, quota):
     indices = {}
     for i in range(len(stations['names'])):
         indices[stations['names'][i]] = i
+    if (src not in stations['names'] or dst not in stations['names']):
+        print "%s not in route of train %s. Aborting." \
+            %(src if src not in stations['names'] else dst, train_no)
+        sys.exit(1)
+
 
     avail = irctc.get_all_avail(train_no, day, month, class_, quota, stations)
 
