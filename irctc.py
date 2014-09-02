@@ -81,7 +81,11 @@ class IrctcClient:
         self.__headers['Referer'] = 'http://www.indianrail.gov.in/seat_Avail.html'
         self.__headers['Content-Type'] = 'application/x-www-form-urlencoded1; charset=UTF-8;'
         r = requests.post(self.__AVAIL_URI, data=self.__params, headers=self.__headers)
-        return IrctcParser.scrape_avail(r.text)
+        try:
+            return IrctcParser.scrape_avail(r.text)
+        except IndexError:
+            print "Error: Couldn't get availability. Aborting."
+            sys.exit(1)
 
     @classmethod
     def __correct_date(self, day, month, offset):
@@ -111,7 +115,11 @@ class IrctcClient:
         self.__headers['Referer'] = 'http://www.indianrail.gov.in/train_Schedule.html'
         r = requests.post(self.__SCHEDULE_URI, data=self.__params,
                           headers=self.__headers)
-        return IrctcParser.scrape_stations_list(r.text)
+        try:
+            return IrctcParser.scrape_stations_list(r.text)
+        except IndexError:
+            print "Error: Couldn't get stations list. Aborting."
+            sys.exit(1)
 
     @classmethod
     def __print_progress(self, p, prompt='', text=''):
