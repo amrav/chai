@@ -1,0 +1,7 @@
+beautifulsoup4==4.3.2
+certifi==14.05.14
+gevent==1.0.1
+greenlet==0.4.3
+grequests==0.2.0
+requests==2.4.0
+wsgiref==0.1.2
