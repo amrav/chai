@@ -114,6 +114,10 @@ def print_plan(shortest_path, avail, indices):
     dst = shortest_path[-1]
     print "Best plan is: "
     for i in range(len(shortest_path) - 1):
+        if shortest_path[i + 1][-1] == '_':
+            shortest_path[i + 1] = shortest_path[i + 2]
+        elif shortest_path[i] == shortest_path[i + 1]:
+            continue
         print shortest_path[i], " --> ", shortest_path[i + 1],
         print "(", indices[shortest_path[i + 1]] - indices[shortest_path[i]], " stations )",
         if (indices[shortest_path[i+1]] > indices[shortest_path[i]]):
@@ -121,8 +125,10 @@ def print_plan(shortest_path, avail, indices):
         else:
             if indices[shortest_path[i+1]] < indices[src]:
                 print ":", "Get on at %s" %shortest_path[i]
-            else:
+            elif shortest_path[i + 1] == dst:
                 print ":", "Get off at %s" %shortest_path[i+1]
+            else:
+                print ":", "Switch at %s" %shortest_path[i+1]
 
 def __cost_lt(cost1, cost2):
     for i in range(len(cost1)):
