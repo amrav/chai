@@ -22,25 +22,25 @@ def main():
     p.add_argument("-q", "--quota", help="class code",
                    choices=['GN', 'CK'], default='GN', dest='quota')
 
-    def __optimize(args):
+    def _optimize(args):
         optimize(args.train_no, args.src, args.dst, args.day, args.month, args.class_, args.quota)
         return
         optimize_(args.train_no, args.src, args.dst, args.day, args.month, args.class_, args.quota, args.verbose)
 
-    def __get_avail(args):
+    def _get_avail(args):
         print irctc.get_avail(args.train_no, args.src, args.dst, args.day, args.month, args.class_, args.quota)
 
     p_availability = sp.add_parser('avail', help="find availability between two stations")
     p_optimize = sp.add_parser('optimize', help="calculate the best possible route to take between two stations")
 
-    p_optimize.set_defaults(func=__optimize)
-    p_availability.set_defaults(func=__get_avail)
+    p_optimize.set_defaults(func=_optimize)
+    p_availability.set_defaults(func=_get_avail)
 
     args = p.parse_args()
 
     args.func(args)
 
-def __segment_cost(v1, v2, avail, indices):
+def cost_tuple(v1, v2, avail, indices):
     #if v1 is ahead of v2
     if (indices[v1] >= indices[v2]):
         return (0, 0, 10 * (indices[v1] - indices[v2]))
@@ -54,21 +54,18 @@ def __segment_cost(v1, v2, avail, indices):
     else:
         return (float("inf"), 0, 0)
 
-def numerical_cost(segment_cost):
+def numerical_cost(cost_tuple):
     LARGE_BASE = 100
-    return (LARGE_BASE*LARGE_BASE) * segment_cost[0] + LARGE_BASE * segment_cost[1] + segment_cost[2]
+    return (LARGE_BASE*LARGE_BASE) * cost_tuple[0] + LARGE_BASE * cost_tuple[1] + cost_tuple[2]
 
 def shortest_path(src, dst, names, cost):
     G = nx.DiGraph()
     G.add_nodes_from(names)
-    G.add_nodes_from({name + "_" for name in names})
+
     indices = {}
     for i in range(len(names)):
         indices[names[i]] = i
 
-    # Connect each node to its complement
-    for name in names:
-        G.add_edge(name + "_", name, weight=0)
     # Add edges from src to stations before it
     for i in range(indices[src]):
         G.add_edge(src, names[i],
@@ -77,10 +74,9 @@ def shortest_path(src, dst, names, cost):
     for i in range(indices[dst] + 1, len(names)):
         G.add_edge(names[i], dst, weight=cost(names[i], dst))
     # Add reverse edges from every station after src back
-    # to complement stations
     for i in range(indices[src] + 1, len(names)):
         for j in range(indices[src] + 1, i):
-            G.add_edge(names[i], names[j] + '_', weight=cost(names[i], names[j]))
+            G.add_edge(names[i], names[j], weight=cost(names[i], names[j]))
     # Add edges from every station before dst to
     # every station after src
     for i in range(len(names)):
@@ -98,19 +94,19 @@ def optimize(train_no, src, dst, day, month, class_, quota):
     stations = irctc.get_stations(train_no)
     print "done."
 
-    indices = {}
-    for i in range(len(stations['names'])):
-        indices[stations['names'][i]] = i
     if (src not in stations['names'] or dst not in stations['names']):
         print "%s not in route of train %s. Aborting." \
             %(src if src not in stations['names'] else dst, train_no)
         sys.exit(1)
 
+    indices = {}
+    for i in range(len(stations['names'])):
+        indices[stations['names'][i]] = i
 
     avail = irctc.get_all_avail(train_no, day, month, class_, quota, stations)
 
     def cost(src, dst):
-        return numerical_cost(__segment_cost(src, dst, avail, indices))
+        return numerical_cost(cost_tuple(src, dst, avail, indices))
 
     print_plan(shortest_path(src, dst, stations['names'], cost), avail, indices)
 
@@ -119,10 +115,6 @@ def print_plan(shortest_path, avail, indices):
     dst = shortest_path[-1]
     print "Best plan is: "
     for i in range(len(shortest_path) - 1):
-        if shortest_path[i + 1][-1] == '_':
-            shortest_path[i + 1] = shortest_path[i + 2]
-        elif shortest_path[i] == shortest_path[i + 1]:
-            continue
         print shortest_path[i], " --> ", shortest_path[i + 1],
         print "(", indices[shortest_path[i + 1]] - indices[shortest_path[i]], " stations )",
         if (indices[shortest_path[i+1]] > indices[shortest_path[i]]):
@@ -186,7 +178,7 @@ def optimize_(train_no, src, dst, day, month, class_, quota, verbose = False):
                 continue
             if (verbose):
                 print "v2 = ", v2
-                print "segment cost =", __segment_cost(v1, v2, avail, names, indices),
+                print "segment cost =", cost_tuple(v1, v2, avail, names, indices),
                 if v1 in cost[src]:
                     print "cost[%s][%s] = %s" %(src, v1, cost[src][v1]),
                 if v2 in cost[src]:
