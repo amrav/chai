@@ -8,6 +8,7 @@ Use `virtualenv` to install packages locally rather than globally.
 
 ```
 $ pip install -r requirements.txt
+$ git submodule init && git submodule update
 ```
 
 ## Usage
