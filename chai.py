@@ -2,7 +2,7 @@
 
 import argparse
 import re
-import irctc
+import indianrail as ir
 import sys
 import networkx as nx
 
@@ -24,11 +24,9 @@ def main():
 
     def _optimize(args):
         optimize(args.train_no, args.src, args.dst, args.day, args.month, args.class_, args.quota)
-        return
-        optimize_(args.train_no, args.src, args.dst, args.day, args.month, args.class_, args.quota, args.verbose)
 
     def _get_avail(args):
-        print irctc.get_avail(args.train_no, args.src, args.dst, args.day, args.month, args.class_, args.quota)
+        print ir.get_avail(args.train_no, args.src, args.dst, args.day, args.month, args.class_, args.quota)
 
     p_availability = sp.add_parser('avail', help="find availability between two stations")
     p_optimize = sp.add_parser('optimize', help="calculate the best possible route to take between two stations")
@@ -91,7 +89,7 @@ def shortest_path(src, dst, names, cost):
 def optimize(train_no, src, dst, day, month, class_, quota):
     sys.stdout.write("Fetching stations on route... ")
     sys.stdout.flush()
-    stations = irctc.get_stations(train_no)
+    stations = ir.get_stations(train_no)
     print "done."
 
     if (src not in stations['names'] or dst not in stations['names']):
@@ -103,7 +101,7 @@ def optimize(train_no, src, dst, day, month, class_, quota):
     for i in range(len(stations['names'])):
         indices[stations['names'][i]] = i
 
-    avail = irctc.get_all_avail(train_no, day, month, class_, quota, stations)
+    avail = ir.get_all_avail(train_no, day, month, class_, quota, stations)
 
     def cost(src, dst):
         return numerical_cost(cost_tuple(src, dst, avail, indices))
@@ -126,76 +124,6 @@ def print_plan(shortest_path, avail, indices):
                 print ":", "Get off at %s" %shortest_path[i+1]
             else:
                 print ":", "Switch at %s" %shortest_path[i+1]
-
-def __cost_lt(cost1, cost2):
-    for i in range(len(cost1)):
-        if (cost1[i] < cost2[i]):
-            return True
-        elif (cost1[i] > cost2[i]):
-            return False
-    return False
-
-def __cost_sum(cost1, cost2):
-    return (cost1[0] + cost2[0], cost1[1] + cost2[1], cost1[2] + cost2[2])
-
-
-def optimize_(train_no, src, dst, day, month, class_, quota, verbose = False):
-    sys.stdout.write("Fetching stations on route... ")
-    sys.stdout.flush()
-    stations = irctc.get_stations(train_no)
-    print "done."
-
-    names = stations['names']
-    indices = {}
-    for i in range(len(names)):
-        indices[names[i]] = i
-    print "Stations found: ", indices
-    src_no = indices[src]; dst_no = indices[dst]
-    avail = irctc.get_all_avail(train_no, day, month, class_, quota, stations)
-    cost = {}
-    cost[names[dst_no]] = {}
-    previous = {}
-    for i in range(src_no, len(names) - 1):
-        cost[names[i]] = {}
-        cost[names[i]][names[i]] = (0, 0, 0)
-        for j in range(i + 1, len(names)):
-            cost[names[i]][names[j]] = (float("inf"), 0, 0)
-    for i in range(dst_no + 1, len(names)):
-        if names[i] not in cost:
-            cost[names[i]] = {}
-        cost[names[i]][dst] = (float("inf"), 0, 0)
-    for i in range(0, src_no):
-        cost[src][names[i]] = (float("inf"), 0, 0)
-        if names[i] not in cost:
-            cost[names[i]] = {}
-            for j in range(src_no + 1, len(names)):
-                cost[names[i]][names[j]] = (float("inf"), 0, 0)
-    for v1 in [src] + names[0:src_no] + names[src_no + 1:]:
-        if (verbose):
-            print "v1 = ", v1
-        for v2 in cost[v1]:
-            if (v1 == v2):
-                continue
-            if (verbose):
-                print "v2 = ", v2
-                print "segment cost =", cost_tuple(v1, v2, avail, names, indices),
-                if v1 in cost[src]:
-                    print "cost[%s][%s] = %s" %(src, v1, cost[src][v1]),
-                if v2 in cost[src]:
-                    print "cost[%s][%s] = %s" %(src, v2, cost[src][v2]),
-            if __cost_lt(__cost_sum(__segment_cost(v1, v2, avail, indices), cost[src][v1]), cost[src][v2]):
-                cost[src][v2] = __cost_sum(__segment_cost(v1, v2, avail, indices), cost[src][v1])
-                previous[v2] = v1
-            if (verbose):
-                print "Final cost[%s][%s] =" %(src, v2), cost[src][v2]
-    if (verbose):
-        print "Cost from ", src, " to ", dst, " is ", cost[src][dst]
-    optimum = [dst]
-    currentVertex = dst
-    while (currentVertex != src):
-        currentVertex = previous[currentVertex]
-        optimum.insert(0, currentVertex)
-    print_plan(optimum)
 
 if __name__ == '__main__':
     main()

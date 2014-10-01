@@ -1,12 +1,19 @@
 import requests
 import re
 from bs4 import BeautifulSoup as bs
-import grequests
 import sys
 import copy
+import os
+import inspect
+
+# hack to include grequests from http://stackoverflow.com/a/6098238/1448759
+cmd_subfolder = os.path.realpath(os.path.abspath(os.path.join(os.path.split(inspect.getfile( inspect.currentframe() ))[0],"grequests")))
+if cmd_subfolder not in sys.path:
+    sys.path.insert(0, cmd_subfolder)
+import grequests
 
 session = grequests.Session()
-session.mount('http://', requests.adapters.HTTPAdapter(max_retries=100))
+session.mount('http://', requests.adapters.HTTPAdapter(max_retries=10))
 
 def scrape_avail(html):
     soup = bs(html)
@@ -147,6 +154,10 @@ def get_all_avail(train_no, day, month, class_, quota, stations=None, concurrenc
                 avail[src][dst] = "UNAVAILABLE"
         return _on_response
 
+    failedRequests = []
+    def exception_handler(request, exception, failedRequests=failedRequests):
+        failedRequests.append(request)
+
     avail = {}
     print "Using up to", concurrency, "concurrent connections."
     for i in range(len(names) - 1):
@@ -172,6 +183,13 @@ def get_all_avail(train_no, day, month, class_, quota, stations=None, concurrenc
                                                       dst=names[j],
                                                       avail=avail))
                 ))
-    responses = grequests.map(rs, size=concurrency)
+    grequests.map(rs, size=concurrency, exception_handler=exception_handler)
+
+    while len(failedRequests) != 0:
+        print "\nWarning: Retrying %d failed requests." % len(failedRequests)
+        requests = copy.copy(failedRequests)
+        del failedRequests[:]
+        grequests.map(requests, size=concurrency, exception_handler=exception_handler)
+
     print
     return avail

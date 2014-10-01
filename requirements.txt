@@ -2,8 +2,7 @@ beautifulsoup4==4.3.2
 certifi==14.05.14
 decorator==3.4.0
 gevent==1.0.1
-greenlet==0.4.3
-grequests==0.2.0
+greenlet==0.4.4
 networkx==1.9
-requests==2.4.0
+requests==2.4.1
 wsgiref==0.1.2
