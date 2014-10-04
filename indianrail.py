@@ -181,12 +181,13 @@ def get_all_avail(train_no, day, month, class_, quota, stations=None, concurrenc
                                                       month=c_month,
                                                       src=names[i],
                                                       dst=names[j],
-                                                      avail=avail))
+                                                      avail=avail)),
+                    timeout=10
                 ))
     grequests.map(rs, size=concurrency, exception_handler=exception_handler)
 
     while len(failedRequests) != 0:
-        print "\nWarning: Retrying %d failed requests." % len(failedRequests)
+        print "\nWarning: Retrying %d requests." % len(failedRequests)
         requests = copy.copy(failedRequests)
         del failedRequests[:]
         grequests.map(requests, size=concurrency, exception_handler=exception_handler)
