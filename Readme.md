@@ -54,3 +54,7 @@ Optimum plan is:
 NDLS  -->  CNB ( 1  stations ) : AVAILABLE 33
 CNB  -->  KGP ( 19  stations ) : AVAILABLE 3
 ```
+
+## License
+
+[GPLv3](https://github.com/amrav/chai/blob/master/LICENSE)
